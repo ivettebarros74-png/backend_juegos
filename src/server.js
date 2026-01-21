@@ -43,7 +43,7 @@ const startServer = async () => {
     console.log('✅ Conexión a la base de datos establecida correctamente');
 
     // TEMPORAL: Forzar creación de tablas
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ alter: true });
     console.log('✅ Tablas creadas correctamente');
 
     app.listen(PORT, () => {
