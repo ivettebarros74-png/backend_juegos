@@ -42,11 +42,12 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('✅ Conexión a la base de datos establecida correctamente');
 
-    await sequelize.sync({ alter: true });
-    console.log('✅ Modelos sincronizados con la base de datos');
+    // TEMPORAL: Forzar creación de tablas
+    await sequelize.sync({ force: true });
+    console.log('✅ Tablas creadas correctamente');
 
     app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+      console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
     });
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);
