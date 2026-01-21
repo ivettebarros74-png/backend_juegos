@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const sequelize = require('./config/database');
 const gameRoutes = require('./routes/gameRoutes');
-const statsRoutes = require('./routes/statsRoutes'); // NUEVA LÍNEA
+const statsRoutes = require('./routes/statsRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 // Importar TODOS los modelos
@@ -16,21 +16,52 @@ const DailyProgress = require('./models/dailyProgressModel');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Obtener orígenes permitidos y normalizar (quitar / al final)
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim().replace(/\/$/, ''))
+  : ['http://localhost:5173', 'http://localhost:3000'];
+
+console.log('📍 Orígenes CORS permitidos:', allowedOrigins);
+
+// Middleware CORS configurado correctamente
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
-  credentials: true
+  origin: function (origin, callback) {
+    // Permitir requests sin origin (Postman, curl, apps móviles)
+    if (!origin) return callback(null, true);
+    
+    // Normalizar el origin (quitar / al final si existe)
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    
+    if (allowedOrigins.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+    
+    const msg = `CORS: Origen ${origin} no permitido`;
+    console.warn(msg);
+    console.warn(`Orígenes válidos: ${allowedOrigins.join(', ')}`);
+    return callback(new Error(msg), false);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Rutas
 app.use('/api/games', gameRoutes);
-app.use('/api/stats', statsRoutes); // NUEVA LÍNEA
+app.use('/api/stats', statsRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
-  res.json({ message: 'API de juegos funcionando correctamente' });
+  res.json({ 
+    message: 'API de juegos funcionando correctamente',
+    version: '1.0.0',
+    allowedOrigins: allowedOrigins,
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
 // Middleware de manejo de errores
@@ -53,6 +84,8 @@ const startServer = async () => {
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+      console.log(`📍 Orígenes CORS permitidos:`);
+      allowedOrigins.forEach(origin => console.log(`   - ${origin}`));
     });
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);
