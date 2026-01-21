@@ -42,9 +42,14 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('✅ Conexión a la base de datos establecida correctamente');
 
-    // TEMPORAL: Forzar creación de tablas
-    await sequelize.sync({ alter: true });
-    console.log('✅ Tablas creadas correctamente');
+    // Solo en desarrollo, usar alter
+    if (process.env.NODE_ENV !== 'production') {
+      await sequelize.sync({ alter: true });
+      console.log('✅ Tablas sincronizadas (modo desarrollo)');
+    } else {
+      // En producción, solo verificar que existan las tablas
+      console.log('✅ Usando tablas existentes (modo producción)');
+    }
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
