@@ -24,8 +24,11 @@ const Game = sequelize.define('Game', {
     allowNull: false
   },
   difficulty: {
-    type: DataTypes.ENUM('Fácil', 'Medio', 'Difícil'),
-    allowNull: false
+    type: DataTypes.STRING(20), // Cambiar ENUM a STRING para PostgreSQL
+    allowNull: false,
+    validate: {
+      isIn: [['Fácil', 'Medio', 'Difícil']]
+    }
   },
   players: {
     type: DataTypes.INTEGER,
