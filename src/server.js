@@ -51,7 +51,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Rutas
-
+app.use('/api/games', gameRoutes);
+app.use('/api/stats', statsRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
